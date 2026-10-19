@@ -99,7 +99,8 @@ class AdminController extends Controller
             default => 'diperbarui',
         };
 
-        return back()->with('success', "Status perusahaan '{$perusahaan->nama_perusahaan}' berhasil {$statusStr}.");
+        return redirect()->route('admin.perusahaan.index')
+            ->with('success', "Status perusahaan '{$perusahaan->nama_perusahaan}' berhasil {$statusStr}.");
     }
 
     /**
@@ -233,6 +234,6 @@ class AdminController extends Controller
             'allLamaran'
         ))->setPaper('a4', 'portrait');
 
-        return $pdf->download('Laporan-Eksekutif-Prodi-D3TI-USU-' . date('Ymd') . '.pdf');
+        return $pdf->download('Laporan-Eksekutif-Prodi-D3TI-USU-'.date('Ymd').'.pdf');
     }
 }

@@ -25,7 +25,7 @@ class PelamarController extends Controller
 
         return $user->pelamar ?? Pelamar::create([
             'user_id' => $user->id,
-            'nim' => 'NIM-' . $user->id,
+            'nim' => 'NIM-'.$user->id,
             'angkatan' => date('Y'),
             'ipk' => 3.50,
             'no_telp' => '08xxxxxxxxxx',
@@ -53,13 +53,27 @@ class PelamarController extends Controller
 
         // Calculate profile completion percentage
         $completionPoints = 0;
-        if (! empty($pelamar->nim)) $completionPoints += 15;
-        if (! empty($pelamar->ipk)) $completionPoints += 15;
-        if (! empty($pelamar->headline)) $completionPoints += 15;
-        if (! empty($pelamar->keahlian)) $completionPoints += 15;
-        if (! empty($pelamar->link_github)) $completionPoints += 15;
-        if (! empty($pelamar->file_cv)) $completionPoints += 15;
-        if ($pelamar->portofolio->count() > 0) $completionPoints += 10;
+        if (! empty($pelamar->nim)) {
+            $completionPoints += 15;
+        }
+        if (! empty($pelamar->ipk)) {
+            $completionPoints += 15;
+        }
+        if (! empty($pelamar->headline)) {
+            $completionPoints += 15;
+        }
+        if (! empty($pelamar->keahlian)) {
+            $completionPoints += 15;
+        }
+        if (! empty($pelamar->link_github)) {
+            $completionPoints += 15;
+        }
+        if (! empty($pelamar->file_cv)) {
+            $completionPoints += 15;
+        }
+        if ($pelamar->portofolio->count() > 0) {
+            $completionPoints += 10;
+        }
 
         // Upcoming interview schedule
         $jadwalInterview = Lamaran::with(['lowongan.perusahaan'])
@@ -107,7 +121,7 @@ class PelamarController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'nim' => ['required', 'string', 'max:20', 'unique:pelamar,nim,' . $pelamar->id],
+            'nim' => ['required', 'string', 'max:20', 'unique:pelamar,nim,'.$pelamar->id],
             'angkatan' => ['required', 'string', 'max:4'],
             'ipk' => ['required', 'numeric', 'between:0,4.00'],
             'no_telp' => ['required', 'string', 'max:20'],
@@ -271,7 +285,7 @@ class PelamarController extends Controller
         ]);
 
         return redirect()->route('pelamar.lamaran.show', $lamaran->kode_lamaran)
-            ->with('success', 'Lamaran Anda berhasil dikirim ke ' . $lowongan->perusahaan->nama_perusahaan . '. Kode Lamaran: ' . $kodeLamaran);
+            ->with('success', 'Lamaran Anda berhasil dikirim ke '.$lowongan->perusahaan->nama_perusahaan.'. Kode Lamaran: '.$kodeLamaran);
     }
 
     /**
@@ -317,6 +331,6 @@ class PelamarController extends Controller
         $pdf = Pdf::loadView('pdf.bukti_interview', compact('lamaran'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('Undangan-Interview-' . $lamaran->kode_lamaran . '.pdf');
+        return $pdf->download('Undangan-Interview-'.$lamaran->kode_lamaran.'.pdf');
     }
 }

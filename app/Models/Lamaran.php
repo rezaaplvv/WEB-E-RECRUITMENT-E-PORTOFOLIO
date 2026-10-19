@@ -49,7 +49,7 @@ class Lamaran extends Model
     public static function generateKodeLamaran(): string
     {
         do {
-            $code = 'REC-2026-' . strtoupper(bin2hex(random_bytes(2)));
+            $code = 'REC-2026-'.strtoupper(bin2hex(random_bytes(2)));
         } while (static::where('kode_lamaran', $code)->exists());
 
         return $code;

@@ -178,7 +178,7 @@ class AuthController extends Controller
             Perusahaan::create([
                 'user_id' => $user->id,
                 'nama_perusahaan' => $validated['nama_perusahaan'],
-                'slug' => Str::slug($validated['nama_perusahaan']) . '-' . Str::random(4),
+                'slug' => Str::slug($validated['nama_perusahaan']).'-'.Str::random(4),
                 'bidang_industri' => $validated['bidang_industri'],
                 'website' => $validated['website'] ?? null,
                 'email_hrd' => $validated['email'],

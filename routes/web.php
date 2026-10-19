@@ -39,7 +39,7 @@ Route::middleware(['auth', 'role:pelamar'])->prefix('pelamar')->name('pelamar.')
     Route::get('/dashboard', [PelamarController::class, 'dashboard'])->name('dashboard');
     Route::get('/profil', [PelamarController::class, 'profil'])->name('profil');
     Route::post('/profil', [PelamarController::class, 'updateProfil'])->name('profil.update');
-    
+
     // Portfolio CRUD
     Route::get('/portofolio', [PelamarController::class, 'portofolio'])->name('portofolio.index');
     Route::post('/portofolio', [PelamarController::class, 'storePortofolio'])->name('portofolio.store');
@@ -94,7 +94,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminController::class, 'usersIndex'])->name('users.index');
     Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle');
     Route::get('/lowongan', [AdminController::class, 'lowonganIndex'])->name('lowongan.index');
-    
+
     // Executive Academic Report PDF
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     Route::get('/laporan/cetak-pdf', [AdminController::class, 'cetakLaporanPdf'])->name('laporan.pdf');

@@ -26,7 +26,7 @@ class PerusahaanController extends Controller
         return $user->perusahaan ?? Perusahaan::create([
             'user_id' => $user->id,
             'nama_perusahaan' => $user->name,
-            'slug' => Str::slug($user->name) . '-' . Str::random(4),
+            'slug' => Str::slug($user->name).'-'.Str::random(4),
             'bidang_industri' => 'Teknologi Informasi',
             'website' => null,
             'email_hrd' => $user->email,
@@ -171,7 +171,7 @@ class PerusahaanController extends Controller
         ]);
 
         $validated['perusahaan_id'] = $perusahaan->id;
-        $validated['slug'] = Str::slug($validated['judul_lowongan'] . ' ' . $perusahaan->nama_perusahaan) . '-' . Str::random(5);
+        $validated['slug'] = Str::slug($validated['judul_lowongan'].' '.$perusahaan->nama_perusahaan).'-'.Str::random(5);
         $validated['status_aktif'] = true;
 
         Lowongan::create($validated);
@@ -374,6 +374,6 @@ class PerusahaanController extends Controller
         $pdf = Pdf::loadView('pdf.laporan_perusahaan', compact('perusahaan', 'lamaran'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('Laporan-Rekrutmen-' . Str::slug($perusahaan->nama_perusahaan) . '-' . date('Ymd') . '.pdf');
+        return $pdf->download('Laporan-Rekrutmen-'.Str::slug($perusahaan->nama_perusahaan).'-'.date('Ymd').'.pdf');
     }
 }
