@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookmarkLowongan;
 use App\Models\Lamaran;
 use App\Models\Lowongan;
+use App\Models\Notifikasi;
 use App\Models\Pelamar;
 use App\Models\PortofolioProyek;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -284,7 +286,17 @@ class PelamarController extends Controller
             'catatan_hrd' => 'Lamaran terkirim dan menunggu peninjauan oleh tim rekrutmen perusahaan.',
         ]);
 
+        // Send In-App Notification to Company HRD
+        Notifikasi::kirim(
+            $lowongan->perusahaan->user_id,
+            'Pelamar Baru Masuk',
+            $pelamar->user->name.' telah mengajukan lamaran untuk posisi '.$lowongan->judul_lowongan.' (Kode: '.$kodeLamaran.').',
+            route('perusahaan.pelamar.detail', $lamaran->id),
+            'info'
+        );
+
         return redirect()->route('pelamar.lamaran.show', $lamaran->kode_lamaran)
+
             ->with('success', 'Lamaran Anda berhasil dikirim ke '.$lowongan->perusahaan->nama_perusahaan.'. Kode Lamaran: '.$kodeLamaran);
     }
 
@@ -332,5 +344,65 @@ class PelamarController extends Controller
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('Undangan-Interview-'.$lamaran->kode_lamaran.'.pdf');
+    }
+
+    /**
+     * List all saved / bookmarked job vacancies.
+     */
+    public function bookmarks(): View
+    {
+        $pelamar = $this->getPelamar();
+        $bookmarks = BookmarkLowongan::with(['lowongan.perusahaan'])
+            ->where('pelamar_id', $pelamar->id)
+            ->latest()
+            ->paginate(10);
+
+        return view('pelamar.bookmarks', compact('pelamar', 'bookmarks'));
+    }
+
+    /**
+     * Toggle bookmark state for a job vacancy.
+     */
+    public function toggleBookmark(int $lowonganId): RedirectResponse
+    {
+        $pelamar = $this->getPelamar();
+        $lowongan = Lowongan::findOrFail($lowonganId);
+
+        $existing = BookmarkLowongan::where('pelamar_id', $pelamar->id)
+            ->where('lowongan_id', $lowongan->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $message = 'Lowongan berhasil dihapus dari daftar simpanan.';
+        } else {
+            BookmarkLowongan::create([
+                'pelamar_id' => $pelamar->id,
+                'lowongan_id' => $lowongan->id,
+            ]);
+            $message = 'Lowongan berhasil disimpan ke daftar favorit Anda.';
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Generate official Academic Digital CV / Resume PDF with USU letterhead.
+     */
+    public function cetakCvDigital(?int $id = null): Response
+    {
+        if ($id) {
+            $pelamar = Pelamar::with(['user', 'portofolio'])->findOrFail($id);
+        } else {
+            $pelamar = $this->getPelamar();
+            $pelamar->load(['user', 'portofolio']);
+        }
+
+        $pdf = Pdf::loadView('pdf.cv_digital', compact('pelamar'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'CV-Digital-D3TI-USU-'.str_replace(' ', '-', $pelamar->user->name).'.pdf';
+
+        return $pdf->download($filename);
     }
 }

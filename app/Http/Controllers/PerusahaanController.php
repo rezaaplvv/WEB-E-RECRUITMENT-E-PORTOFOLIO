@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lamaran;
 use App\Models\Lowongan;
+use App\Models\Notifikasi;
 use App\Models\Perusahaan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -323,7 +324,31 @@ class PerusahaanController extends Controller
 
         $lamaran->update($validated);
 
+        // Send In-App Notification to Applicant
+        $statusLabel = match ($validated['status_lamaran']) {
+            'interview' => 'Panggilan Interview Kerja',
+            'diterima' => 'Selamat! Lamaran Anda Diterima',
+            'ditolak' => 'Pemberitahuan Status Lamaran',
+            default => 'Pembaruan Status Lamaran',
+        };
+
+        $statusMsg = match ($validated['status_lamaran']) {
+            'interview' => 'Anda diundang ke tahap interview oleh '.$lamaran->lowongan->perusahaan->nama_perusahaan.' untuk posisi '.$lamaran->lowongan->judul_lowongan.'.',
+            'diterima' => 'Selamat! Anda dinyatakan diterima pada posisi '.$lamaran->lowongan->judul_lowongan.' di '.$lamaran->lowongan->perusahaan->nama_perusahaan.'.',
+            'ditolak' => 'Pemberitahuan: Proses seleksi Anda untuk posisi '.$lamaran->lowongan->judul_lowongan.' di '.$lamaran->lowongan->perusahaan->nama_perusahaan.' telah selesai.',
+            default => 'Status lamaran Anda untuk posisi '.$lamaran->lowongan->judul_lowongan.' telah diperbarui menjadi '.ucfirst($validated['status_lamaran']).'.',
+        };
+
+        Notifikasi::kirim(
+            $lamaran->pelamar->user_id,
+            $statusLabel,
+            $statusMsg,
+            route('pelamar.lamaran.show', $lamaran->kode_lamaran),
+            $validated['status_lamaran'] === 'interview' ? 'interview' : 'status'
+        );
+
         return redirect()->route('perusahaan.pelamar.detail', $lamaran->id)
+
             ->with('success', 'Status seleksi pelamar dan jadwal berhasil diperbarui.');
     }
 

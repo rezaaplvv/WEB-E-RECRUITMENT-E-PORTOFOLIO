@@ -149,10 +149,40 @@
             </div>
         </div>
 
-        <!-- Right: Fast Actions & Reports -->
+        <!-- Right: Fast Actions & Talent Distribution -->
         <div class="space-y-6">
+            <!-- Talent Portfolio Distribution Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900">Distribusi Portofolio Talenta</h2>
+                        <p class="text-[11px] text-slate-500">Berdasarkan {{ $totalProyek }} karya proyek terdaftar</p>
+                    </div>
+                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
+                        Tren Minat
+                    </span>
+                </div>
+
+                <div class="space-y-3 pt-1">
+                    @forelse($kategoriProyek as $kp)
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="font-semibold text-slate-700">{{ $kp->kategori }}</span>
+                                <span class="text-slate-500 font-mono">{{ $kp->total }} proyek ({{ $kp->persentase }}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $kp->persentase }}%"></div>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-slate-400 italic">Belum ada data portofolio terdaftar.</p>
+                    @endforelse
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
                 <h2 class="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100">Pusat Laporan & Data Prodi</h2>
+
                 <p class="text-xs text-slate-600 leading-relaxed">
                     Unduh rekapitulasi data penyerapan kerja lulusan D3 Teknik Informatika USU berformat PDF resmi dengan kop fakultas.
                 </p>

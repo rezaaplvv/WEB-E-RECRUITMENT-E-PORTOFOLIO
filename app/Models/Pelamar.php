@@ -51,6 +51,16 @@ class Pelamar extends Model
         return $this->hasMany(Lamaran::class, 'pelamar_id');
     }
 
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(BookmarkLowongan::class, 'pelamar_id');
+    }
+
+    public function hasBookmarked(int $lowonganId): bool
+    {
+        return $this->bookmarks()->where('lowongan_id', $lowonganId)->exists();
+    }
+
     /**
      * Get array of skills from comma-separated or text keahlian.
      */

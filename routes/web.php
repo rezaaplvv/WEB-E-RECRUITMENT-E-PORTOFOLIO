@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PelamarController;
 use App\Http\Controllers\PerusahaanController;
 use App\Http\Controllers\PublicController;
@@ -17,6 +18,7 @@ Route::get('/lowongan', [PublicController::class, 'lowongan'])->name('lowongan.i
 Route::get('/lowongan/{slug}', [PublicController::class, 'detailLowongan'])->name('lowongan.detail');
 Route::get('/talenta', [PublicController::class, 'talenta'])->name('talenta.index');
 Route::get('/talenta/{id}', [PublicController::class, 'detailTalenta'])->name('talenta.detail');
+Route::get('/talenta/{id}/cetak-cv', [PelamarController::class, 'cetakCvDigital'])->name('talenta.cv.digital');
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +53,24 @@ Route::middleware(['auth', 'role:pelamar'])->prefix('pelamar')->name('pelamar.')
     Route::post('/lowongan/{lowonganId}/apply', [PelamarController::class, 'apply'])->name('lamaran.apply');
     Route::get('/lamaran/{kode}', [PelamarController::class, 'showLamaran'])->name('lamaran.show');
     Route::get('/lamaran/{kode}/cetak-interview', [PelamarController::class, 'cetakBuktiInterview'])->name('lamaran.cetak-interview');
+
+    // Saved Vacancies (Bookmarks)
+    Route::get('/bookmarks', [PelamarController::class, 'bookmarks'])->name('bookmarks.index');
+    Route::post('/bookmarks/{lowonganId}/toggle', [PelamarController::class, 'toggleBookmark'])->name('bookmarks.toggle');
+
+    // Digital Academic Resume PDF
+    Route::get('/cetak-cv-digital', [PelamarController::class, 'cetakCvDigital'])->name('cv.digital');
+});
+
+/*
+|--------------------------------------------------------------------------
+| In-App Notifications (Authenticated Users)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+    Route::get('/notifikasi/{id}/baca', [NotificationController::class, 'markAsRead'])->name('notifikasi.baca');
+    Route::post('/notifikasi/baca-semua', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.baca-semua');
 });
 
 /*

@@ -46,6 +46,11 @@ class Lowongan extends Model
         return $this->hasMany(Lamaran::class, 'lowongan_id');
     }
 
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(BookmarkLowongan::class, 'lowongan_id');
+    }
+
     public function isExpired(): bool
     {
         return $this->batas_lamaran->isPast();

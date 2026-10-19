@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Lamaran;
 use App\Models\Lowongan;
+use App\Models\Notifikasi;
 use App\Models\Pelamar;
 use App\Models\Perusahaan;
+use App\Models\PortofolioProyek;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -32,6 +34,18 @@ class AdminController extends Controller
         // Calculate Graduate Absorption Rate
         $absorptionRate = $totalPelamar > 0 ? round(($totalDiterima / $totalPelamar) * 100, 1) : 0;
 
+        // Portfolio category distribution
+        $totalProyek = PortofolioProyek::count();
+        $kategoriProyek = PortofolioProyek::selectRaw('kategori, count(*) as total')
+            ->groupBy('kategori')
+            ->orderByDesc('total')
+            ->get()
+            ->map(function ($item) use ($totalProyek) {
+                $item->persentase = $totalProyek > 0 ? round(($item->total / $totalProyek) * 100, 1) : 0;
+
+                return $item;
+            });
+
         // Pending partner approvals
         $perusahaanPending = Perusahaan::where('status_verifikasi', 'pending')->latest()->take(5)->get();
 
@@ -48,6 +62,8 @@ class AdminController extends Controller
             'totalDiterima',
             'totalInterview',
             'absorptionRate',
+            'totalProyek',
+            'kategoriProyek',
             'perusahaanPending',
             'lamaranTerbaru'
         ));
@@ -92,7 +108,21 @@ class AdminController extends Controller
 
         $perusahaan->update($validated);
 
+        // Send In-App Notification to Company
+        $verifikasiMsg = $validated['status_verifikasi'] === 'terverifikasi'
+            ? 'Selamat! Akun kemitraan perusahaan Anda telah diverifikasi oleh Administrator Program Studi D3 TI USU.'
+            : 'Status kemitraan perusahaan Anda telah diperbarui menjadi: '.ucfirst($validated['status_verifikasi']).'.';
+
+        Notifikasi::kirim(
+            $perusahaan->user_id,
+            'Status Verifikasi Perusahaan',
+            $verifikasiMsg,
+            route('perusahaan.dashboard'),
+            'verifikasi'
+        );
+
         $statusStr = match ($validated['status_verifikasi']) {
+
             'terverifikasi' => 'disetujui sebagai mitra terverifikasi',
             'ditolak' => 'ditolak',
             'pending' => 'dikembalikan ke status pending',
@@ -169,21 +199,39 @@ class AdminController extends Controller
     /**
      * Program study executive placement report view.
      */
-    public function laporan(): View
+    public function laporan(Request $request): View
     {
-        $totalPelamar = Pelamar::count();
-        $totalDiterima = Lamaran::where('status_lamaran', 'diterima')->count();
-        $totalInterview = Lamaran::where('status_lamaran', 'interview')->count();
-        $totalLamaran = Lamaran::count();
+        $selectedAngkatan = $request->input('angkatan');
+        $angkatanList = Pelamar::select('angkatan')->distinct()->orderByDesc('angkatan')->pluck('angkatan');
+
+        $queryPelamar = Pelamar::query();
+        if ($selectedAngkatan) {
+            $queryPelamar->where('angkatan', $selectedAngkatan);
+        }
+        $totalPelamar = $queryPelamar->count();
+
+        $queryPenempatan = Lamaran::with(['pelamar.user', 'lowongan.perusahaan'])
+            ->where('status_lamaran', 'diterima');
+        if ($selectedAngkatan) {
+            $queryPenempatan->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $penempatan = $queryPenempatan->latest()->get();
+        $totalDiterima = $penempatan->count();
+
+        $queryInterview = Lamaran::where('status_lamaran', 'interview');
+        if ($selectedAngkatan) {
+            $queryInterview->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $totalInterview = $queryInterview->count();
+
+        $queryLamaran = Lamaran::query();
+        if ($selectedAngkatan) {
+            $queryLamaran->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $totalLamaran = $queryLamaran->count();
+
         $totalPerusahaan = Perusahaan::where('status_verifikasi', 'terverifikasi')->count();
-
         $absorptionRate = $totalPelamar > 0 ? round(($totalDiterima / $totalPelamar) * 100, 1) : 0;
-
-        // Placements list (diterima)
-        $penempatan = Lamaran::with(['pelamar.user', 'lowongan.perusahaan'])
-            ->where('status_lamaran', 'diterima')
-            ->latest()
-            ->get();
 
         // Overall summary per category
         $kategoriStats = Lowongan::selectRaw('kategori_bidang, count(*) as count')
@@ -198,30 +246,53 @@ class AdminController extends Controller
             'totalPerusahaan',
             'absorptionRate',
             'penempatan',
-            'kategoriStats'
+            'kategoriStats',
+            'selectedAngkatan',
+            'angkatanList'
         ));
     }
 
     /**
      * Generate official formal executive report PDF with Faculty Kop Surat.
      */
-    public function cetakLaporanPdf(): Response
+    public function cetakLaporanPdf(Request $request): Response
     {
-        $totalPelamar = Pelamar::count();
-        $totalDiterima = Lamaran::where('status_lamaran', 'diterima')->count();
-        $totalInterview = Lamaran::where('status_lamaran', 'interview')->count();
-        $totalLamaran = Lamaran::count();
+        $selectedAngkatan = $request->input('angkatan');
+
+        $queryPelamar = Pelamar::query();
+        if ($selectedAngkatan) {
+            $queryPelamar->where('angkatan', $selectedAngkatan);
+        }
+        $totalPelamar = $queryPelamar->count();
+
+        $queryPenempatan = Lamaran::with(['pelamar.user', 'lowongan.perusahaan'])
+            ->where('status_lamaran', 'diterima');
+        if ($selectedAngkatan) {
+            $queryPenempatan->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $penempatan = $queryPenempatan->latest()->get();
+        $totalDiterima = $penempatan->count();
+
+        $queryInterview = Lamaran::where('status_lamaran', 'interview');
+        if ($selectedAngkatan) {
+            $queryInterview->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $totalInterview = $queryInterview->count();
+
+        $queryLamaran = Lamaran::query();
+        if ($selectedAngkatan) {
+            $queryLamaran->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $totalLamaran = $queryLamaran->count();
+
         $totalPerusahaan = Perusahaan::where('status_verifikasi', 'terverifikasi')->count();
         $absorptionRate = $totalPelamar > 0 ? round(($totalDiterima / $totalPelamar) * 100, 1) : 0;
 
-        $penempatan = Lamaran::with(['pelamar.user', 'lowongan.perusahaan'])
-            ->where('status_lamaran', 'diterima')
-            ->latest()
-            ->get();
-
-        $allLamaran = Lamaran::with(['pelamar.user', 'lowongan.perusahaan'])
-            ->latest()
-            ->get();
+        $queryAllLamaran = Lamaran::with(['pelamar.user', 'lowongan.perusahaan']);
+        if ($selectedAngkatan) {
+            $queryAllLamaran->whereHas('pelamar', fn ($q) => $q->where('angkatan', $selectedAngkatan));
+        }
+        $allLamaran = $queryAllLamaran->latest()->get();
 
         $pdf = Pdf::loadView('pdf.laporan_admin', compact(
             'totalPelamar',
@@ -231,9 +302,12 @@ class AdminController extends Controller
             'totalPerusahaan',
             'absorptionRate',
             'penempatan',
-            'allLamaran'
+            'allLamaran',
+            'selectedAngkatan'
         ))->setPaper('a4', 'portrait');
 
-        return $pdf->download('Laporan-Eksekutif-Prodi-D3TI-USU-'.date('Ymd').'.pdf');
+        $suffix = $selectedAngkatan ? '-Angkatan-'.$selectedAngkatan : '';
+
+        return $pdf->download('Laporan-Eksekutif-Prodi-D3TI-USU'.$suffix.'-'.date('Ymd').'.pdf');
     }
 }

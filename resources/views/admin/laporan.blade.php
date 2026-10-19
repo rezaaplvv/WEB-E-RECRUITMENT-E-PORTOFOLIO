@@ -7,20 +7,42 @@
 @section('content')
 <div class="space-y-8">
     
-    <!-- Header with Action Button -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <!-- Header with Action Button & Filter -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h2 class="text-base font-bold text-slate-900">Rekapitulasi Penyerapan Lulusan Industri</h2>
-            <p class="text-xs text-slate-500">Data resmi keterhubungan talenta vokasi dengan mitra industri terverifikasi.</p>
+            <p class="text-xs text-slate-500">
+                @if($selectedAngkatan)
+                    Menampilkan data penyerapan khusus <strong>Tahun Angkatan {{ $selectedAngkatan }}</strong>.
+                @else
+                    Data resmi keterhubungan talenta vokasi dengan mitra industri terverifikasi (Seluruh Angkatan).
+                @endif
+            </p>
         </div>
-        <a href="{{ route('admin.laporan.pdf') }}"
-           class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center shrink-0">
-            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Cetak Laporan Resmi PDF (Dompdf)
-        </a>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <form action="{{ route('admin.laporan') }}" method="GET" class="flex items-center gap-2">
+                <select name="angkatan" onchange="this.form.submit()" class="px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Semua Angkatan</option>
+                    @foreach($angkatanList as $akt)
+                        <option value="{{ $akt }}" {{ $selectedAngkatan == $akt ? 'selected' : '' }}>Angkatan {{ $akt }}</option>
+                    @endforeach
+                </select>
+                @if($selectedAngkatan)
+                    <a href="{{ route('admin.laporan') }}" class="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1 bg-slate-100 rounded-lg">Reset</a>
+                @endif
+            </form>
+
+            <a href="{{ route('admin.laporan.pdf', ['angkatan' => $selectedAngkatan]) }}"
+               class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center shrink-0">
+                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Cetak Laporan PDF (Dompdf)
+            </a>
+        </div>
     </div>
+
 
     <!-- Summary Stats Box -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">

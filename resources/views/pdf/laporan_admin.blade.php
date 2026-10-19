@@ -128,8 +128,9 @@
     <!-- Title Box -->
     <div class="title-box">
         <h4>LAPORAN EKSEKUTIF PENYERAPAN & KEMITRAAN INDUSTRI LULUSAN</h4>
-        <p>Tahun Akademik {{ date('Y') }}/{{ date('Y')+1 }} &bull; Periode Berjalan</p>
+        <p>Tahun Akademik {{ date('Y') }}/{{ date('Y')+1 }} &bull; @if(!empty($selectedAngkatan)) Khusus Tahun Angkatan {{ $selectedAngkatan }} @else Seluruh Angkatan Alumni @endif &bull; Periode Berjalan</p>
     </div>
+
 
     <!-- Metrics Summary -->
     <table class="stats-grid">

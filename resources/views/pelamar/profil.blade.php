@@ -6,11 +6,29 @@
 
 @section('content')
 <div class="max-w-4xl space-y-6">
+    <!-- Academic Digital Resume Card -->
+    <div class="bg-gradient-to-r from-slate-900 to-blue-950 rounded-2xl p-6 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm border border-slate-800">
+        <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 mb-2">
+                Format Resmi Vokasi USU
+            </div>
+            <h2 class="text-base font-bold text-white">Generate Resume Akademik Digital (PDF)</h2>
+            <p class="text-xs text-slate-300 mt-1 max-w-lg">Cetak dokumen resume digital otomatis berstandar program studi lengkap dengan kop resmi, capaian IPK, ringkasan profil, dan showcase karya proyek portofolio Anda.</p>
+        </div>
+        <a href="{{ route('pelamar.cv.digital') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow-sm transition-colors shrink-0 self-start sm:self-auto">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Unduh CV Digital D3 TI (PDF)
+        </a>
+    </div>
+
     <form action="{{ route('pelamar.profil.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <!-- Academic & Personal Information -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+
             <div class="border-b border-slate-100 pb-4">
                 <h2 class="text-base font-bold text-slate-900">Biodata Akademik Mahasiswa</h2>
                 <p class="text-xs text-slate-500">Informasi identitas resmi dan capaian akademik Program Studi D3 Teknik Informatika USU.</p>

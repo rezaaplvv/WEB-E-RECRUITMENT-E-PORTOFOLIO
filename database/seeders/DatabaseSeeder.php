@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\BookmarkLowongan;
 use App\Models\Lamaran;
 use App\Models\Lowongan;
+use App\Models\Notifikasi;
 use App\Models\Pelamar;
 use App\Models\Perusahaan;
 use App\Models\PortofolioProyek;
@@ -547,5 +549,49 @@ class DatabaseSeeder extends Seeder
             'link_atau_lokasi_interview' => null,
             'catatan_hrd' => null,
         ]);
+
+        // 6. Data Bookmark Lowongan Mahasiswa
+        BookmarkLowongan::create([
+            'pelamar_id' => $pelamar1->id,
+            'lowongan_id' => $lowongan3->id,
+        ]);
+        BookmarkLowongan::create([
+            'pelamar_id' => $pelamar1->id,
+            'lowongan_id' => $lowongan6->id,
+        ]);
+        BookmarkLowongan::create([
+            'pelamar_id' => $pelamar2->id,
+            'lowongan_id' => $lowongan1->id,
+        ]);
+
+        // 7. Data Notifikasi Sistem In-App (Tanpa emoji)
+        Notifikasi::kirim(
+            $userPelamar1->id,
+            'Panggilan Wawancara Kerja',
+            'PT Medan Solusi Teknologi mengundang Anda ke tahap wawancara untuk posisi Full-Stack Web Developer.',
+            route('pelamar.lamaran.show', 'REC-2026-A101'),
+            'interview'
+        );
+        Notifikasi::kirim(
+            $userPelamar1->id,
+            'Selamat! Lamaran Anda Diterima',
+            'Anda resmi diterima untuk posisi Mobile Application Developer di PT Medan Solusi Teknologi.',
+            route('pelamar.lamaran.show', 'REC-2026-A102'),
+            'status'
+        );
+        Notifikasi::kirim(
+            $ptMedan->id,
+            'Pelamar Baru Masuk',
+            'Fani Anggraeni Siregar telah melamar untuk posisi Full-Stack Web Developer.',
+            route('perusahaan.pelamar.index'),
+            'info'
+        );
+        Notifikasi::kirim(
+            $ptMedan->id,
+            'Kemitraan Terverifikasi',
+            'Profil perusahaan Anda telah berhasil diverifikasi oleh Administrator Program Studi D3 TI USU.',
+            route('perusahaan.dashboard'),
+            'verifikasi'
+        );
     }
 }

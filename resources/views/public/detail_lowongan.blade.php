@@ -36,14 +36,32 @@
                 </p>
             </div>
 
-            <div class="text-left md:text-right">
-                <span class="text-xs text-slate-500 block">Kisaran Kompensasi</span>
-                <span class="text-lg font-bold text-slate-900">{{ $lowongan->rentang_gaji }}</span>
-                <span class="text-xs text-slate-400 block mt-0.5">Batas: {{ $lowongan->batas_lamaran->isoFormat('D MMMM Y') }}</span>
+            <div class="flex flex-col items-start md:items-end gap-2">
+                <div>
+                    <span class="text-xs text-slate-500 block">Kisaran Kompensasi</span>
+                    <span class="text-lg font-bold text-slate-900">{{ $lowongan->rentang_gaji }}</span>
+                    <span class="text-xs text-slate-400 block mt-0.5">Batas: {{ $lowongan->batas_lamaran->isoFormat('D MMMM Y') }}</span>
+                </div>
+
+                @auth
+                    @if(auth()->user()->isPelamar())
+                        @php $isBookmarked = auth()->user()->pelamar ? auth()->user()->pelamar->hasBookmarked($lowongan->id) : false; @endphp
+                        <form action="{{ route('pelamar.bookmarks.toggle', $lowongan->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors {{ $isBookmarked ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50' }}">
+                                <svg class="w-4 h-4 {{ $isBookmarked ? 'fill-current' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                </svg>
+                                <span>{{ $isBookmarked ? 'Lowongan Tersimpan' : 'Simpan Lowongan' }}</span>
+                            </button>
+                        </form>
+                    @endif
+                @endauth
             </div>
         </div>
     </div>
 </div>
+
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

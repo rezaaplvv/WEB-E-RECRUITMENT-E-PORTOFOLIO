@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +65,19 @@ class User extends Authenticatable
     public function pelamar(): HasOne
     {
         return $this->hasOne(Pelamar::class);
+    }
+
+    /**
+     * User's in-app notifications.
+     */
+    public function notifikasi(): HasMany
+    {
+        return $this->hasMany(Notifikasi::class)->latest();
+    }
+
+    public function unreadNotifikasiCount(): int
+    {
+        return $this->hasMany(Notifikasi::class)->where('is_read', false)->count();
     }
 
     public function isAdmin(): bool

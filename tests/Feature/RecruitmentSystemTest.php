@@ -280,4 +280,84 @@ class RecruitmentSystemTest extends TestCase
             ]);
         }
     }
+
+    /**
+     * Test pelamar can toggle and view bookmarks.
+     */
+    public function test_pelamar_can_toggle_and_view_bookmarks(): void
+    {
+        $user = User::where('role', 'pelamar')->first();
+        $this->actingAs($user);
+
+        $lowongan = Lowongan::first();
+
+        // Toggle bookmark (add)
+        $response = $this->post('/pelamar/bookmarks/'.$lowongan->id.'/toggle');
+        $response->assertSessionHas('success');
+
+        // View bookmarks list
+        $viewResponse = $this->get('/pelamar/bookmarks');
+        $viewResponse->assertStatus(200);
+        $viewResponse->assertSee($lowongan->judul_lowongan);
+
+        // Toggle bookmark again (remove)
+        $removeResponse = $this->post('/pelamar/bookmarks/'.$lowongan->id.'/toggle');
+        $removeResponse->assertSessionHas('success');
+    }
+
+    /**
+     * Test in-app notifications can be viewed and marked as read.
+     */
+    public function test_in_app_notifications_can_be_viewed_and_marked_as_read(): void
+    {
+        $user = User::where('role', 'pelamar')->first();
+        $this->actingAs($user);
+
+        // View notifications page
+        $this->get('/notifikasi')->assertStatus(200);
+
+        // Mark all as read
+        $response = $this->post('/notifikasi/baca-semua');
+        $response->assertSessionHas('success');
+
+        $this->assertEquals(0, $user->unreadNotifikasiCount());
+    }
+
+    /**
+     * Test official digital academic CV PDF generation.
+     */
+    public function test_digital_academic_cv_pdf_generation(): void
+    {
+        $user = User::where('role', 'pelamar')->first();
+        $this->actingAs($user);
+
+        // Pelamar authenticated route
+        $response = $this->get('/pelamar/cetak-cv-digital');
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/pdf');
+
+        // Public talent CV route
+        $publicResponse = $this->get('/talenta/'.$user->pelamar->id.'/cetak-cv');
+        $publicResponse->assertStatus(200);
+        $publicResponse->assertHeader('content-type', 'application/pdf');
+    }
+
+    /**
+     * Test admin can filter executive placement report by angkatan.
+     */
+    public function test_admin_can_filter_executive_report_by_angkatan(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+        $this->actingAs($admin);
+
+        // Filter web report
+        $response = $this->get('/admin/laporan?angkatan=2023');
+        $response->assertStatus(200);
+        $response->assertSee('Angkatan 2023');
+
+        // Filter PDF download
+        $pdfResponse = $this->get('/admin/laporan/cetak-pdf?angkatan=2023');
+        $pdfResponse->assertStatus(200);
+        $pdfResponse->assertHeader('content-type', 'application/pdf');
+    }
 }

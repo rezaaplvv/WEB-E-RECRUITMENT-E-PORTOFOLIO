@@ -171,12 +171,19 @@
                         </svg>
                         Tracking Lamaran
                     </a>
+                    <a href="{{ route('pelamar.bookmarks.index') }}" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('pelamar.bookmarks.*') ? 'bg-blue-600 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        Lowongan Tersimpan
+                    </a>
                     <a href="{{ route('lowongan.index') }}" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
                         <svg class="w-5 h-5 mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         Jelajah Lowongan
                     </a>
+
                 @endif
 
                 <div class="pt-4 mt-4 border-t border-slate-800">
@@ -229,10 +236,69 @@
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     <span class="text-xs text-slate-500 hidden md:inline">
                         {{ now()->isoFormat('dddd, D MMMM Y') }}
                     </span>
+
+                    {{-- IN-APP NOTIFICATIONS BELL DROPDOWN --}}
+                    @php
+                        $unreadCount = auth()->user()->unreadNotifikasiCount();
+                        $recentNotifications = auth()->user()->notifikasi()->take(5)->get();
+                    @endphp
+                    <div x-data="{ notifOpen: false }" class="relative">
+                        <button @click="notifOpen = !notifOpen" @click.outside="notifOpen = false" type="button" class="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors focus:outline-none" title="Pemberitahuan">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            @if($unreadCount > 0)
+                                <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white ring-2 ring-white">
+                                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                                </span>
+                            @endif
+                        </button>
+
+                        <div x-show="notifOpen" 
+                             x-transition:enter="transition ease-out duration-150" 
+                             x-transition:enter-start="opacity-0 scale-95" 
+                             x-transition:enter-end="opacity-100 scale-100" 
+                             x-transition:leave="transition ease-in duration-100" 
+                             x-transition:leave-start="opacity-100 scale-100" 
+                             x-transition:leave-end="opacity-0 scale-95" 
+                             class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden" 
+                             style="display: none;">
+                            <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold">Pemberitahuan</h3>
+                                    @if($unreadCount > 0)
+                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500 text-white">{{ $unreadCount }} Baru</span>
+                                    @endif
+                                </div>
+                                <a href="{{ route('notifikasi.index') }}" class="text-xs text-blue-300 hover:text-white transition-colors">Lihat Semua</a>
+                            </div>
+
+                            <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                                @forelse($recentNotifications as $notif)
+                                    <a href="{{ route('notifikasi.baca', $notif->id) }}" class="block p-3.5 hover:bg-slate-50 transition-colors {{ $notif->is_read ? 'bg-white' : 'bg-blue-50/40' }}">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <p class="text-xs font-bold text-slate-900 truncate">{{ $notif->judul }}</p>
+                                            <span class="text-[10px] text-slate-400 shrink-0">{{ $notif->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">{{ $notif->pesan }}</p>
+                                    </a>
+                                @empty
+                                    <div class="p-6 text-center text-xs text-slate-500">
+                                        Tidak ada pemberitahuan baru saat ini.
+                                    </div>
+                                @endforelse
+                            </div>
+
+                            <div class="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                                <a href="{{ route('notifikasi.index') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-800">Buka Pusat Notifikasi Lengkap &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+
                     <a href="{{ url('/') }}" class="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-blue-600 border border-slate-200 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-white transition-colors">
                         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -241,6 +307,7 @@
                     </a>
                 </div>
             </header>
+
 
             <!-- Main Body Slot -->
             <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
